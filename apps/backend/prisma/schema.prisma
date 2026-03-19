@@ -1,0 +1,120 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // url 已移至 prisma.config.ts
+}
+
+// ============================================================
+// 認證與權限相關
+// ============================================================
+
+model User {
+  id                String     @id @default(uuid())
+  account           String     @unique              // 登入帳號（必填）
+  email             String?    @unique              // Email（選填）
+  password          String?                         // bcrypt hash，LINE 登入時可為 null
+  lineUserId        String?    @unique @map("line_user_id")
+  name              String                          // 姓名
+  description       String?                         // 備註
+  emailVerifiedAt   DateTime?  @map("email_verified_at")  // Email 驗證時間
+  isActive          Boolean    @default(true) @map("is_active")
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
+  
+  roles             UserRole[]
+  
+  @@map("users")
+}
+
+model Role {
+  id          String           @id @default(uuid())
+  name        String           @unique  // "admin", "staff", "warehouse"
+  displayName String           @map("display_name")  // "系統管理員", "員工", "倉管"
+  description String?
+  isActive    Boolean          @default(true) @map("is_active")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  
+  users       UserRole[]
+  permissions RolePermission[]
+  
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid())
+  code        String           @unique  // "menu.stock.view", "menu.purchase.edit"
+  name        String                   // "查看庫存菜單", "編輯採購"
+  module      String                   // "stock", "purchase", "sale"
+  type        String                   // "menu", "action"
+  description String?
+  createdAt   DateTime         @default(now()) @map("created_at")
+  
+  roles       RolePermission[]
+  
+  @@map("permissions")
+}
+
+model UserRole {
+  userId    String   @map("user_id")
+  roleId    String   @map("role_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  roleId       String     @map("role_id")
+  permissionId String     @map("permission_id")
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ============================================================
+// 供應商
+// ============================================================
+
+model Supplier {
+  id          String   @id @default(uuid())
+  code        String   @unique      // 供應商編號
+  name        String
+  contactName String?  @map("contact_name")
+  phone       String?
+  email       String?
+  lineUserId  String?  @unique @map("line_user_id")  // 綁定的 LINE user ID
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  @@map("suppliers")
+}
+
+// ============================================================
+// 模組設定
+// ============================================================
+
+model ModuleConfig {
+  id          String   @id @default(uuid())
+  code        String   @unique  // "stock", "purchase", "sale", "production"
+  name        String              // "庫存管理", "採購管理", "銷售管理"
+  description String?
+  enabled     Boolean  @default(true)
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  @@map("module_configs")
+}

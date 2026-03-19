@@ -1,0 +1,22 @@
+{
+  "name": "symbolerp",
+  "version": "1.0.0",
+  "description": "SymbolERP - Monorepo with NestJS Backend and Next.js Admin Panel",
+  "private": true,
+  "scripts": {
+    "install:all": "cd apps/backend && npm install && cd ../admin-panel && npm install",
+    "dev:backend": "cd apps/backend && npm run start:dev",
+    "dev:admin": "cd apps/admin-panel && npm run dev",
+    "build:backend": "cd apps/backend && npm run build",
+    "build:admin": "cd apps/admin-panel && npm run build",
+    "build": "npm run build:backend && npm run build:admin",
+    "prisma:generate": "cd apps/backend && npm run prisma:generate",
+    "prisma:migrate": "cd apps/backend && npm run prisma:migrate:dev",
+    "prisma:studio": "cd apps/backend && npm run prisma:studio",
+    "seed": "cd apps/backend && npm run seed",
+    "db:reset": "cd apps/backend && npx prisma migrate reset"
+  },
+  "keywords": ["erp", "monorepo", "nestjs", "nextjs"],
+  "author": "",
+  "license": "ISC"
+}
