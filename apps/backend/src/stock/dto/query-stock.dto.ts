@@ -3,7 +3,7 @@
 // ============================================================
 import { IsOptional, IsString, IsInt, Min } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 export class QueryStockDto {
   @ApiPropertyOptional({ description: '商品名稱（模糊搜尋）' })
@@ -23,21 +23,25 @@ export class QueryStockDto {
 
   @ApiPropertyOptional({ description: '類別ID' })
   @IsOptional()
+  @Transform(({ value, obj }) => value ?? obj.stock_category_id)
   @IsString()
   stockCategoryId?: string;
 
   @ApiPropertyOptional({ description: '品牌ID' })
   @IsOptional()
+  @Transform(({ value, obj }) => value ?? obj.stock_brand_id)
   @IsString()
   stockBrandId?: string;
 
   @ApiPropertyOptional({ description: '供應商ID' })
   @IsOptional()
+  @Transform(({ value, obj }) => value ?? obj.partner_id ?? obj['partner_id[]'])
   @IsString()
   partnerId?: string;
 
   @ApiPropertyOptional({ description: '商品屬性 (B/R/F/K/A)' })
   @IsOptional()
+  @Transform(({ value, obj }) => value ?? obj.mbflag_type_id)
   @IsString()
   mbflagTypeId?: string;
 

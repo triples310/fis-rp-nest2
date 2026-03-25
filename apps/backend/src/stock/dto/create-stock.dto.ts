@@ -35,53 +35,68 @@ export class CreateStockDto {
   code?: string;
 
   @ApiProperty({ description: '商品類別ID' })
+  @Transform(({ value, obj }) => value ?? obj.stock_category_id)
   @IsString()
   @IsNotEmpty()
   stockCategoryId: string;
 
   @ApiProperty({ description: '商品品牌ID' })
+  @Transform(({ value, obj }) => value ?? obj.stock_brand_id)
   @IsString()
   @IsNotEmpty()
   stockBrandId: string;
 
   @ApiProperty({ description: '國家ID', example: 'tw' })
+  @Transform(({ value, obj }) => value ?? obj.country_id)
   @IsString()
   @IsNotEmpty()
   countryId: string;
 
   @ApiProperty({ description: '商品單位ID' })
+  @Transform(({ value, obj }) => value ?? obj.stock_unit_id)
   @IsString()
   @IsNotEmpty()
   stockUnitId: string;
 
   @ApiProperty({ description: '供應商ID陣列' })
+  @Transform(({ value, obj }) => {
+    const raw = value ?? obj.partner_id ?? obj['partner_id[]'];
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw === 'string' && raw.trim().length > 0) return [raw];
+    return raw;
+  })
   @IsArray()
   @IsString({ each: true })
   partnerId: string[];
 
   @ApiProperty({ description: '商品屬性 (B=常溫, R=冷藏, F=冷凍, K=組合, A=其他)', example: 'B' })
+  @Transform(({ value, obj }) => value ?? obj.mbflag_type_id)
   @IsString()
   mbflagTypeId: string;
 
   @ApiPropertyOptional({ description: '稅別ID', default: 'tx' })
   @IsOptional()
+  @Transform(({ value, obj }) => value ?? obj.tax_type_id)
   @IsString()
   taxTypeId?: string;
 
   @ApiPropertyOptional({ description: '定價' })
   @IsOptional()
+  @Transform(({ value, obj }) => value ?? obj.fixed_price)
   @Type(() => Number)
   @IsNumber()
   fixedPrice?: number;
 
   @ApiPropertyOptional({ description: '零售價' })
   @IsOptional()
+  @Transform(({ value, obj }) => value ?? obj.retail_price)
   @Type(() => Number)
   @IsNumber()
   retailPrice?: number;
 
   @ApiPropertyOptional({ description: '公司ID' })
   @IsOptional()
+  @Transform(({ value, obj }) => value ?? obj.company_id)
   @IsString()
   companyId?: string;
 
