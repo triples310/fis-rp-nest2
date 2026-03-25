@@ -18,13 +18,24 @@ export class PermissionGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    if (!user || !user.permissions) {
+    //if (!user || !user.permissions) {
+    //  return false;
+    //}
+    if (!user) {
       return false;
     }
 
+    const roles = Array.isArray(user.roles) ? user.roles : [];
+      if (roles.includes('admin') || roles.includes('superadmin')) {
+        return true;
+    }
+
+    const permissions = Array.isArray(user.permissions) ? user.permissions : [];
+    if (permissions.length === 0) return false;
+
     // 檢查 user 是否擁有任一所需權限
     return requiredPermissions.some((permission) =>
-      user.permissions.includes(permission),
+      permissions.includes(permission),
     );
   }
 }

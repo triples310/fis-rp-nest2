@@ -53,15 +53,8 @@ export class UpdateStockDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @Transform(({ value, obj }) => {
-    const raw = value ?? obj.partner_id ?? obj['partner_id[]'];
-    if (Array.isArray(raw)) return raw;
-    if (typeof raw === 'string' && raw.trim().length > 0) return [raw];
-    return raw;
-  })
-  @IsArray()
-  @IsString({ each: true })
-  partnerId?: string[];
+  @IsString()
+  partnerId?: string;
 
   @ApiPropertyOptional()
   @IsOptional()

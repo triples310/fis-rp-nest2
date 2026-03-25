@@ -127,15 +127,15 @@ export class StockService {
       }
 
       // 4. Suppliers
-      if (dto.partnerId && dto.partnerId.length > 0) {
+      if (dto.partnerId && dto.partnerId.trim().length > 0) {
         await tx.stock_supplier.createMany({
-          data: dto.partnerId.map((partnerId) => ({
+          data: [{
             id: uuidv4(),
             stock_id: stockId,
-            partner_id: partnerId,
+            partner_id: dto.partnerId,
             create_id: operatorId,
             create_name: operatorName,
-          })),
+          }],
         });
       }
 
@@ -252,15 +252,15 @@ export class StockService {
       // 4. Suppliers (replace all)
       if (dto.partnerId !== undefined) {
         await tx.stock_supplier.deleteMany({ where: { stock_id: id } });
-        if (dto.partnerId.length > 0) {
+        if (dto.partnerId && dto.partnerId.trim().length > 0) {
           await tx.stock_supplier.createMany({
-            data: dto.partnerId.map((partnerId) => ({
+            data: [{
               id: uuidv4(),
               stock_id: id,
-              partner_id: partnerId,
+              partner_id: dto.partnerId,
               create_id: operatorId,
               create_name: operatorName,
-            })),
+            }],
           });
         }
       }

@@ -58,16 +58,10 @@ export class CreateStockDto {
   @IsNotEmpty()
   stockUnitId: string;
 
-  @ApiProperty({ description: '供應商ID陣列' })
-  @Transform(({ value, obj }) => {
-    const raw = value ?? obj.partner_id ?? obj['partner_id[]'];
-    if (Array.isArray(raw)) return raw;
-    if (typeof raw === 'string' && raw.trim().length > 0) return [raw];
-    return raw;
-  })
-  @IsArray()
-  @IsString({ each: true })
-  partnerId: string[];
+  @ApiPropertyOptional({ description: '供應商ID' })
+  @IsOptional()
+  @IsString()
+  partnerId?: string;
 
   @ApiProperty({ description: '商品屬性 (B=常溫, R=冷藏, F=冷凍, K=組合, A=其他)', example: 'B' })
   @Transform(({ value, obj }) => value ?? obj.mbflag_type_id)
