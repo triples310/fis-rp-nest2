@@ -697,13 +697,25 @@ export class StockService {
     const fixedPrice = prices.find((p) => p.price_type_id === 'fixed');
     const retailPrice = prices.find((p) => p.price_type_id === 'retail');
 
-    return {
+    return this._normalizeBigInt({
       ...stock,
       fixedPrice: fixedPrice?.price ?? null,
       retailPrice: retailPrice?.price ?? null,
       partnerIds:
         stock.stock_supplier?.map((s: any) => s.partner_id) ?? [],
-    };
+    });
+  }
+
+  private _normalizeBigInt(value: any): any {
+    if (typeof value === 'bigint') return value.toString();
+    if (Array.isArray(value)) return value.map((item) => this._normalizeBigInt(item));
+    if (value instanceof Date || value === null || value === undefined) return value;
+    if (typeof value === 'object') {
+      return Object.fromEntries(
+        Object.entries(value).map(([key, val]) => [key, this._normalizeBigInt(val)]),
+      );
+    }
+    return value;
   }
 
   private async _upsertPrice(
