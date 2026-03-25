@@ -10,6 +10,7 @@ import { PermissionsModule } from '@core/permissions/permissions.module';
 import { ModuleConfigModule } from '@core/module-config/module-config.module';
 import { LiffModule } from '@modules/liff/liff.module';
 import { SeederModule } from './seeder/seeder.module';
+import { StockModule } from './stock/stock.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { SeederModule } from './seeder/seeder.module';
     ModuleConfigModule,
     LiffModule,
     SeederModule,
+    StockModule,
   ],
   controllers: [AppController],
   providers: [AppService],

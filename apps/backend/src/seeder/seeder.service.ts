@@ -165,6 +165,21 @@ export class SeederService {
         description: '編輯庫存資料',
       },
 
+      {
+        code: 'stock.create',
+        name: '建立商品',
+        module: 'stock',
+        type: 'action',
+        description: '建立新商品',
+      },
+      {
+        code: 'stock.delete',
+        name: '刪除商品',
+        module: 'stock',
+        type: 'action',
+        description: '刪除商品',
+      },
+
       // 採購管理（未來擴展）
       {
         code: 'purchase.view',
@@ -341,7 +356,7 @@ export class SeederService {
       const warehousePermissions = await this.prisma.permission.findMany({
         where: {
           code: {
-            in: ['stock.view', 'stock.edit', 'module.view'],
+            in: ['stock.view', 'stock.edit', 'stock.create', 'stock.delete','module.view'],
           },
         },
       });

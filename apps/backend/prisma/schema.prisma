@@ -1,73 +1,62 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  // url 已移至 prisma.config.ts
 }
 
-// ============================================================
-// 認證與權限相關
-// ============================================================
-
 model User {
-  id                String     @id @default(uuid())
-  account           String     @unique              // 登入帳號（必填）
-  email             String?    @unique              // Email（選填）
-  password          String?                         // bcrypt hash，LINE 登入時可為 null
-  lineUserId        String?    @unique @map("line_user_id")
-  name              String                          // 姓名
-  description       String?                         // 備註
-  emailVerifiedAt   DateTime?  @map("email_verified_at")  // Email 驗證時間
-  isActive          Boolean    @default(true) @map("is_active")
-  createdAt         DateTime   @default(now()) @map("created_at")
-  updatedAt         DateTime   @updatedAt @map("updated_at")
-  
-  roles             UserRole[]
-  
+  id              String     @id @default(uuid())
+  account         String     @unique
+  email           String?    @unique
+  password        String?
+  lineUserId      String?    @unique @map("line_user_id")
+  name            String
+  description     String?
+  emailVerifiedAt DateTime?  @map("email_verified_at")
+  isActive        Boolean    @default(true) @map("is_active")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+  roles           UserRole[]
+
   @@map("users")
 }
 
 model Role {
   id          String           @id @default(uuid())
-  name        String           @unique  // "admin", "staff", "warehouse"
-  displayName String           @map("display_name")  // "系統管理員", "員工", "倉管"
+  name        String           @unique
+  displayName String           @map("display_name")
   description String?
   isActive    Boolean          @default(true) @map("is_active")
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
-  
-  users       UserRole[]
   permissions RolePermission[]
-  
+  users       UserRole[]
+
   @@map("roles")
 }
 
 model Permission {
   id          String           @id @default(uuid())
-  code        String           @unique  // "menu.stock.view", "menu.purchase.edit"
-  name        String                   // "查看庫存菜單", "編輯採購"
-  module      String                   // "stock", "purchase", "sale"
-  type        String                   // "menu", "action"
+  code        String           @unique
+  name        String
+  module      String
+  type        String
   description String?
   createdAt   DateTime         @default(now()) @map("created_at")
-  
   roles       RolePermission[]
-  
+
   @@map("permissions")
 }
 
 model UserRole {
   userId    String   @map("user_id")
   roleId    String   @map("role_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now()) @map("created_at")
-  
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@id([userId, roleId])
   @@map("user_roles")
 }
@@ -75,46 +64,754 @@ model UserRole {
 model RolePermission {
   roleId       String     @map("role_id")
   permissionId String     @map("permission_id")
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now()) @map("created_at")
-  
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
   @@id([roleId, permissionId])
   @@map("role_permissions")
 }
 
-// ============================================================
-// 供應商
-// ============================================================
-
 model Supplier {
   id          String   @id @default(uuid())
-  code        String   @unique      // 供應商編號
+  code        String   @unique
   name        String
   contactName String?  @map("contact_name")
   phone       String?
   email       String?
-  lineUserId  String?  @unique @map("line_user_id")  // 綁定的 LINE user ID
+  lineUserId  String?  @unique @map("line_user_id")
   isActive    Boolean  @default(true) @map("is_active")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  
+
   @@map("suppliers")
 }
 
-// ============================================================
-// 模組設定
-// ============================================================
-
 model ModuleConfig {
   id          String   @id @default(uuid())
-  code        String   @unique  // "stock", "purchase", "sale", "production"
-  name        String              // "庫存管理", "採購管理", "銷售管理"
+  code        String   @unique
+  name        String
   description String?
   enabled     Boolean  @default(true)
   sortOrder   Int      @default(0) @map("sort_order")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  
+
   @@map("module_configs")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model company {
+  id             String           @id(map: "idx_41041_primary") @db.VarChar(36)
+  name           String           @db.VarChar(100)
+  uniform_number String           @db.VarChar(20)
+  phone          String?          @db.VarChar(20)
+  address        String?
+  contact_name   String?          @db.VarChar(100)
+  description    String?          @db.VarChar(200)
+  create_id      String           @db.VarChar(20)
+  create_name    String           @db.VarChar(20)
+  create_time    DateTime         @default(now()) @db.Timestamptz(6)
+  modify_id      String?          @db.VarChar(20)
+  modify_name    String?          @db.VarChar(20)
+  modify_time    DateTime?        @db.Timestamptz(6)
+  department     department[]
+  partner        partner[]
+  purchase       purchase[]
+  stock          stock[]
+  stock_brand    stock_brand[]
+  stock_category stock_category[]
+  warehouse      warehouse[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model country {
+  id          String        @id(map: "idx_41092_primary") @db.VarChar(36)
+  code        String        @unique(map: "idx_41092_country_code_unique") @db.VarChar(20)
+  sorting     BigInt        @default(1)
+  name        String        @db.VarChar(100)
+  short_name  String?       @db.VarChar(100)
+  phone_code  String?       @db.VarChar(20)
+  description String?       @db.VarChar(200)
+  create_id   String        @db.VarChar(20)
+  create_name String        @db.VarChar(20)
+  create_time DateTime      @default(now()) @db.Timestamptz(6)
+  modify_id   String?       @db.VarChar(20)
+  modify_name String?       @db.VarChar(20)
+  modify_time DateTime?     @db.Timestamptz(6)
+  currencies  currencies[]
+  partner     partner[]
+  stock_price stock_price[]
+  tax_type    tax_type[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model currencies {
+  id              String            @id(map: "idx_41115_primary") @db.VarChar(36)
+  country_id      String            @db.VarChar(36)
+  sorting         BigInt            @default(1)
+  name            String            @db.VarChar(100)
+  description     String?           @db.VarChar(200)
+  create_id       String            @db.VarChar(20)
+  create_name     String            @db.VarChar(20)
+  create_time     DateTime          @default(now()) @db.Timestamptz(6)
+  modify_id       String?           @db.VarChar(20)
+  modify_name     String?           @db.VarChar(20)
+  modify_time     DateTime?         @db.Timestamptz(6)
+  country         country           @relation(fields: [country_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "currencies_country_id_foreign")
+  purchase        purchase[]
+  purchase_detail purchase_detail[]
+  stock_price     stock_price[]
+
+  @@index([country_id], map: "idx_41115_currencies_country_id_index")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model department {
+  id               String       @id(map: "idx_41161_primary") @db.VarChar(36)
+  company_id       String       @db.VarChar(36)
+  parent           String?      @db.VarChar(36)
+  sorting          BigInt       @default(1)
+  code             String       @unique(map: "idx_41161_department_code_unique") @db.VarChar(20)
+  name             String       @db.VarChar(100)
+  description      String?      @db.VarChar(200)
+  create_id        String       @db.VarChar(20)
+  create_name      String       @db.VarChar(20)
+  create_time      DateTime     @default(now()) @db.Timestamptz(6)
+  modify_id        String?      @db.VarChar(20)
+  modify_name      String?      @db.VarChar(20)
+  modify_time      DateTime?    @db.Timestamptz(6)
+  company          company      @relation(fields: [company_id], references: [id], onUpdate: Restrict, map: "department_company_id_foreign")
+  department       department?  @relation("departmentTodepartment", fields: [parent], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "department_parent_foreign")
+  other_department department[] @relation("departmentTodepartment")
+  purchase         purchase[]
+
+  @@index([company_id], map: "idx_41161_department_company_id_foreign")
+  @@index([parent], map: "idx_41161_department_parent_index")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model inventory {
+  id           String    @id(map: "idx_41233_primary") @db.VarChar(36)
+  warehouse_id String    @db.VarChar(36)
+  stock_id     String    @db.VarChar(36)
+  serial_id    String?   @db.VarChar(36)
+  qty          Float     @default(0)
+  description  String?   @db.VarChar(200)
+  create_id    String    @db.VarChar(20)
+  create_name  String    @db.VarChar(20)
+  create_time  DateTime  @default(now()) @db.Timestamptz(6)
+  modify_id    String?   @db.VarChar(20)
+  modify_name  String?   @db.VarChar(20)
+  modify_time  DateTime? @db.Timestamptz(6)
+  stock        stock     @relation(fields: [stock_id], references: [id], onUpdate: Restrict, map: "inventory_stock_id_foreign")
+  warehouse    warehouse @relation(fields: [warehouse_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "inventory_warehouse_id_foreign")
+
+  @@index([stock_id], map: "idx_41233_inventory_stock_id_foreign")
+  @@index([warehouse_id], map: "idx_41233_inventory_warehouse_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model inventory_log {
+  id                 BigInt        @id(map: "idx_41246_primary") @default(autoincrement())
+  warehouse_id       String        @db.VarChar(36)
+  stock_id           String        @db.VarChar(36)
+  stock_serial_id    String?       @db.VarChar(36)
+  inventory_log_date DateTime      @db.Date
+  before_qty         Float         @default(0)
+  qty                Float         @default(0)
+  after_qty          Float         @default(0)
+  description        String?       @db.VarChar(200)
+  create_id          String        @db.VarChar(20)
+  create_name        String        @db.VarChar(20)
+  create_time        DateTime      @default(now()) @db.Timestamptz(6)
+  modify_id          String?       @db.VarChar(20)
+  modify_name        String?       @db.VarChar(20)
+  modify_time        DateTime?     @db.Timestamptz(6)
+  stock              stock         @relation(fields: [stock_id], references: [id], onUpdate: Restrict, map: "inventory_log_stock_id_foreign")
+  stock_serial       stock_serial? @relation(fields: [stock_serial_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "inventory_log_stock_serial_id_foreign")
+  warehouse          warehouse     @relation(fields: [warehouse_id], references: [id], onUpdate: Restrict, map: "inventory_log_warehouse_id_foreign")
+
+  @@index([stock_id], map: "idx_41246_inventory_log_stock_id_foreign")
+  @@index([stock_serial_id], map: "idx_41246_inventory_log_stock_serial_id_foreign")
+  @@index([warehouse_id], map: "idx_41246_inventory_log_warehouse_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model invoice {
+  id                  String           @id(map: "idx_41264_primary") @db.VarChar(10)
+  word_track          String           @db.VarChar(2)
+  invoice_no_start    String?          @db.VarChar(8)
+  invoice_no_end      String?          @db.VarChar(8)
+  invoice_year        BigInt
+  invoice_month_start BigInt
+  invoice_month_end   BigInt
+  random_num          String           @db.VarChar(4)
+  bar_code            String?          @db.VarChar(19)
+  uniform_number      String?          @db.VarChar(8)
+  is_use              Int              @default(0) @db.SmallInt
+  use_time            DateTime?        @db.Timestamptz(6)
+  related_type        String?          @db.VarChar(100)
+  related_id          String?          @db.VarChar(36)
+  carruer_type        String?          @db.VarChar(2)
+  carruer_num         String?          @db.VarChar(100)
+  love_code           String?          @db.VarChar(100)
+  customer_id         String?          @db.VarChar(100)
+  customer_name       String?          @db.VarChar(100)
+  customer_zip        BigInt           @default(0)
+  customer_city       String?          @db.VarChar(20)
+  customer_area       String?          @db.VarChar(20)
+  customer_street     String?          @db.VarChar(100)
+  customer_floor      String?          @db.VarChar(20)
+  customer_room       String?          @db.VarChar(20)
+  customer_addr       String?          @db.VarChar(200)
+  customer_phone      String?          @db.VarChar(20)
+  customer_mail       String?          @db.VarChar(20)
+  print               Int              @default(0) @db.SmallInt
+  is_void             Int              @default(0) @db.SmallInt
+  void_time           DateTime?        @db.Timestamptz(6)
+  qrcode_l            String?
+  qrcode_r            String?
+  return_data         String?
+  description         String?          @db.VarChar(200)
+  create_id           String           @db.VarChar(20)
+  create_name         String           @db.VarChar(20)
+  create_time         DateTime         @default(now()) @db.Timestamptz(6)
+  modify_id           String?          @db.VarChar(20)
+  modify_name         String?          @db.VarChar(20)
+  modify_time         DateTime?        @db.Timestamptz(6)
+  invoice_detail      invoice_detail[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model invoice_detail {
+  id             String    @id(map: "idx_41287_primary") @db.VarChar(36)
+  invoice_id     String    @db.VarChar(10)
+  stock_id       String    @db.VarChar(36)
+  sorting        BigInt    @default(1)
+  unit_price     Float     @default(0)
+  qty            BigInt    @default(0)
+  non_tax_amount Float     @default(0)
+  tax            Float     @default(0)
+  tax_amount     Float     @default(0)
+  description    String?   @db.VarChar(200)
+  create_id      String    @db.VarChar(20)
+  create_name    String    @db.VarChar(20)
+  create_time    DateTime  @default(now()) @db.Timestamptz(6)
+  modify_id      String?   @db.VarChar(20)
+  modify_name    String?   @db.VarChar(20)
+  modify_time    DateTime? @db.Timestamptz(6)
+  invoice        invoice   @relation(fields: [invoice_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "invoice_detail_invoice_id_foreign")
+  stock          stock     @relation(fields: [stock_id], references: [id], onUpdate: Restrict, map: "invoice_detail_stock_id_foreign")
+
+  @@index([invoice_id], map: "idx_41287_invoice_detail_invoice_id_foreign")
+  @@index([stock_id], map: "idx_41287_invoice_detail_stock_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model mbflag_type {
+  id          String    @id(map: "idx_41361_primary") @db.VarChar(36)
+  sorting     BigInt    @default(1)
+  code        String    @db.VarChar(20)
+  name        String    @db.VarChar(100)
+  description String?   @db.VarChar(200)
+  create_id   String    @db.VarChar(20)
+  create_name String    @db.VarChar(20)
+  create_time DateTime  @default(now()) @db.Timestamptz(6)
+  modify_id   String?   @db.VarChar(20)
+  modify_name String?   @db.VarChar(20)
+  modify_time DateTime? @db.Timestamptz(6)
+  stock       stock[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model member_stock {
+  id          BigInt   @id(map: "idx_41551_primary") @default(autoincrement())
+  sorting     BigInt   @default(1)
+  member_id   String   @db.VarChar(36)
+  stock_id    String   @db.VarChar(36)
+  description String?
+  create_id   String   @db.VarChar(20)
+  create_name String   @db.VarChar(20)
+  create_time DateTime @default(now()) @db.Timestamptz(6)
+  stock       stock    @relation(fields: [stock_id], references: [id], onUpdate: Restrict, map: "member_stock_stock_id_foreign")
+
+  @@index([member_id], map: "idx_41551_member_stock_member_id_foreign")
+  @@index([stock_id], map: "idx_41551_member_stock_stock_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model partner {
+  id              String            @id(map: "idx_41630_primary") @db.VarChar(36)
+  company_id      String            @db.VarChar(36)
+  partner_type_id String            @db.VarChar(36)
+  country_id      String            @db.VarChar(36)
+  payment_id      String?           @db.VarChar(36)
+  code            String            @db.VarChar(20)
+  name            String            @db.VarChar(100)
+  short_name      String?           @db.VarChar(100)
+  phone           String?           @db.VarChar(20)
+  mobile          String?           @db.VarChar(20)
+  uniform_number  String?           @db.VarChar(20)
+  contact_address String?
+  tax_type_id     String            @db.VarChar(36)
+  description     String?           @db.VarChar(200)
+  create_id       String            @db.VarChar(20)
+  create_name     String            @db.VarChar(20)
+  create_time     DateTime          @default(now()) @db.Timestamptz(6)
+  modify_id       String?           @db.VarChar(20)
+  modify_name     String?           @db.VarChar(20)
+  modify_time     DateTime?         @db.Timestamptz(6)
+  company         company           @relation(fields: [company_id], references: [id], onUpdate: Restrict, map: "partner_company_id_foreign")
+  country         country           @relation(fields: [country_id], references: [id], onUpdate: Restrict, map: "partner_country_id_foreign")
+  purchase        purchase[]
+  purchase_detail purchase_detail[]
+  stock_supplier  stock_supplier[]
+
+  @@index([company_id], map: "idx_41630_partner_company_id_foreign")
+  @@index([country_id], map: "idx_41630_partner_country_id_foreign")
+  @@index([partner_type_id], map: "idx_41630_partner_partner_type_id_foreign")
+  @@index([payment_id], map: "idx_41630_partner_payment_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model price_type {
+  id          String        @id(map: "idx_41740_primary") @db.VarChar(36)
+  sorting     BigInt        @default(1)
+  name        String        @db.VarChar(100)
+  description String?       @db.VarChar(200)
+  create_id   String        @db.VarChar(20)
+  create_name String        @db.VarChar(20)
+  create_time DateTime      @default(now()) @db.Timestamptz(6)
+  modify_id   String?       @db.VarChar(20)
+  modify_name String?       @db.VarChar(20)
+  modify_time DateTime?     @db.Timestamptz(6)
+  stock_price stock_price[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model purchase {
+  id                  String            @id(map: "idx_41751_primary") @db.VarChar(36)
+  company_id          String            @db.VarChar(36)
+  purchase_type_id    String            @db.VarChar(36)
+  partner_id          String?           @db.VarChar(36)
+  warehouse_id        String            @db.VarChar(36)
+  department_id       String?           @db.VarChar(36)
+  currencies_id       String?           @db.VarChar(36)
+  purchase_related_id String?           @db.VarChar(36)
+  code                String            @db.VarChar(20)
+  purchase_date       DateTime          @db.Date
+  exchange_rate       Float             @default(1)
+  total_qty           BigInt            @default(0)
+  total_amount        Float             @default(0)
+  invoice_no          String?           @db.VarChar(20)
+  is_payment          Int?              @default(0) @db.SmallInt
+  is_in_warehouse     Int?              @default(0) @db.SmallInt
+  in_warehouse_id     String?           @db.VarChar(20)
+  in_warehouse_name   String?           @db.VarChar(20)
+  in_warehouse_time   DateTime?         @db.Timestamptz(6)
+  uniform_number      String?           @db.VarChar(20)
+  contact_address     String?
+  description         String?
+  status              Int               @default(1) @db.SmallInt
+  is_finish           Boolean           @default(false)
+  payment_id          String            @db.VarChar(36)
+  create_id           String            @db.VarChar(20)
+  create_name         String            @db.VarChar(20)
+  create_time         DateTime          @default(now()) @db.Timestamptz(6)
+  modify_id           String?           @db.VarChar(20)
+  modify_name         String?           @db.VarChar(20)
+  modify_time         DateTime?         @db.Timestamptz(6)
+  company             company           @relation(fields: [company_id], references: [id], onUpdate: Restrict, map: "purchase_company_id_foreign")
+  currencies          currencies?       @relation(fields: [currencies_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "purchase_currencies_id_foreign")
+  department          department?       @relation(fields: [department_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "purchase_department_id_foreign")
+  partner             partner?          @relation(fields: [partner_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "purchase_partner_id_foreign")
+  purchase            purchase?         @relation("purchaseTopurchase", fields: [purchase_related_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "purchase_purchase_related_id_foreign")
+  other_purchase      purchase[]        @relation("purchaseTopurchase")
+  warehouse           warehouse         @relation(fields: [warehouse_id], references: [id], onUpdate: Restrict, map: "purchase_warehouse_id_foreign")
+  purchase_detail     purchase_detail[]
+
+  @@index([company_id], map: "idx_41751_purchase_company_id_foreign")
+  @@index([currencies_id], map: "idx_41751_purchase_currencies_id_foreign")
+  @@index([department_id], map: "idx_41751_purchase_department_id_foreign")
+  @@index([partner_id], map: "idx_41751_purchase_partner_id_foreign")
+  @@index([purchase_related_id], map: "idx_41751_purchase_purchase_related_id_foreign")
+  @@index([purchase_type_id], map: "idx_41751_purchase_purchase_type_id_foreign")
+  @@index([warehouse_id], map: "idx_41751_purchase_warehouse_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model purchase_detail {
+  id               String      @id(map: "idx_41779_primary") @db.VarChar(36)
+  purchase_id      String      @db.VarChar(36)
+  stock_id         String      @db.VarChar(36)
+  partner_id       String      @db.VarChar(36)
+  currencies_id    String?     @db.VarChar(36)
+  sorting          BigInt      @default(1)
+  org_unit_price   Float       @default(0)
+  unit_price       Float       @default(0)
+  price            Float       @default(0)
+  qty              Float       @default(0)
+  in_warehouse_qty Float       @default(0)
+  amount           Float       @default(0)
+  serial_no        String?     @db.VarChar(36)
+  is_return        Boolean     @default(false)
+  is_finish        Boolean     @default(false)
+  description      String?     @db.VarChar(200)
+  create_id        String      @db.VarChar(20)
+  create_name      String      @db.VarChar(20)
+  create_time      DateTime    @default(now()) @db.Timestamptz(6)
+  modify_id        String?     @db.VarChar(20)
+  modify_name      String?     @db.VarChar(20)
+  modify_time      DateTime?   @db.Timestamptz(6)
+  currencies       currencies? @relation(fields: [currencies_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "purchase_detail_currencies_id_foreign")
+  partner          partner     @relation(fields: [partner_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "purchase_detail_partner_id_foreign")
+  purchase         purchase    @relation(fields: [purchase_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "purchase_detail_purchase_id_foreign")
+  stock            stock       @relation(fields: [stock_id], references: [id], onUpdate: Restrict, map: "purchase_detail_stock_id_foreign")
+
+  @@index([currencies_id], map: "idx_41779_purchase_detail_currencies_id_foreign")
+  @@index([partner_id], map: "idx_41779_purchase_detail_partner_id_foreign")
+  @@index([purchase_id], map: "idx_41779_purchase_detail_purchase_id_foreign")
+  @@index([stock_id], map: "idx_41779_purchase_detail_stock_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sale_detail {
+  id              String        @id(map: "idx_41919_primary") @db.VarChar(36)
+  sale_id         String        @db.VarChar(36)
+  stock_id        String        @db.VarChar(36)
+  stock_serial_id String?       @db.VarChar(36)
+  stock_price_id  String?       @db.VarChar(36)
+  sorting         BigInt        @default(1)
+  org_unit_price  Float         @default(0)
+  unit_price      Float         @default(0)
+  discount_rate   Float         @default(100)
+  discount_amount Float         @default(0)
+  price           Float         @default(0)
+  qty             BigInt        @default(0)
+  non_tax_amount  Float         @default(0)
+  tax             Float         @default(0)
+  tax_amount      Float         @default(0)
+  is_free         Int           @default(0) @db.SmallInt
+  is_return       Int           @default(0) @db.SmallInt
+  is_making       Int           @default(0) @db.SmallInt
+  is_finish       Int           @default(0) @db.SmallInt
+  description     String?       @db.VarChar(200)
+  create_id       String        @db.VarChar(20)
+  create_name     String        @db.VarChar(20)
+  create_time     DateTime      @default(now()) @db.Timestamptz(6)
+  modify_id       String?       @db.VarChar(20)
+  modify_name     String?       @db.VarChar(20)
+  modify_time     DateTime?     @db.Timestamptz(6)
+  stock           stock         @relation(fields: [stock_id], references: [id], onUpdate: Restrict, map: "sale_detail_stock_id_foreign")
+  stock_price     stock_price?  @relation(fields: [stock_price_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sale_detail_stock_price_id_foreign")
+  stock_serial    stock_serial? @relation(fields: [stock_serial_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "sale_detail_stock_serial_id_foreign")
+
+  @@index([sale_id], map: "idx_41919_sale_detail_sale_id_foreign")
+  @@index([stock_id], map: "idx_41919_sale_detail_stock_id_foreign")
+  @@index([stock_price_id], map: "idx_41919_sale_detail_stock_price_id_foreign")
+  @@index([stock_serial_id], map: "idx_41919_sale_detail_stock_serial_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model stock {
+  id                String             @id(map: "idx_42107_primary") @db.VarChar(36)
+  company_id        String             @db.VarChar(36)
+  sorting           BigInt             @default(1)
+  code              String             @db.VarChar(20)
+  name              String             @db.VarChar(100)
+  short_name        String?            @db.VarChar(100)
+  stock_brand_id    String?            @db.VarChar(36)
+  stock_category_id String?            @db.VarChar(36)
+  country_id        String             @db.VarChar(36)
+  stock_unit_id     String             @db.VarChar(36)
+  mbflag_type_id    String             @db.VarChar(36)
+  tax_type_id       String             @db.VarChar(36)
+  barcode           String?            @db.VarChar(1024)
+  stock_length      Float              @default(0)
+  stock_width       Float              @default(0)
+  stock_height      Float              @default(0)
+  stock_weight      Float              @default(0)
+  serial_stock      Boolean            @default(false)
+  consignment       Boolean            @default(false)
+  gift              Boolean            @default(false)
+  valid             Boolean            @default(true)
+  description       String?
+  create_id         String             @db.VarChar(20)
+  create_name       String             @db.VarChar(20)
+  create_time       DateTime           @default(now()) @db.Timestamptz(6)
+  modify_id         String?            @db.VarChar(20)
+  modify_name       String?            @db.VarChar(20)
+  modify_time       DateTime?          @db.Timestamptz(6)
+  inventory         inventory[]
+  inventory_log     inventory_log[]
+  invoice_detail    invoice_detail[]
+  member_stock      member_stock[]
+  purchase_detail   purchase_detail[]
+  sale_detail       sale_detail[]
+  company           company            @relation(fields: [company_id], references: [id], onUpdate: Restrict, map: "stock_company_id_foreign")
+  mbflag_type       mbflag_type        @relation(fields: [mbflag_type_id], references: [id], onUpdate: Restrict, map: "stock_mbflag_type_id_foreign")
+  stock_brand       stock_brand?       @relation(fields: [stock_brand_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "stock_stock_brand_id_foreign")
+  stock_category    stock_category?    @relation(fields: [stock_category_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "stock_stock_category_id_foreign")
+  stock_unit        stock_unit         @relation(fields: [stock_unit_id], references: [id], onUpdate: Restrict, map: "stock_stock_unit_id_foreign")
+  tax_type          tax_type           @relation(fields: [tax_type_id], references: [id], onUpdate: Restrict, map: "stock_tax_type_id_foreign")
+  stock_bom         stock_bom[]
+  stock_bom_detail  stock_bom_detail[]
+  stock_media       stock_media[]
+  stock_meta        stock_meta[]
+  stock_price       stock_price[]
+  stock_serial      stock_serial[]
+  stock_supplier    stock_supplier[]
+
+  @@index([company_id], map: "idx_42107_stock_company_id_foreign")
+  @@index([mbflag_type_id], map: "idx_42107_stock_mbflag_type_id_foreign")
+  @@index([stock_brand_id], map: "idx_42107_stock_stock_brand_id_foreign")
+  @@index([stock_category_id], map: "idx_42107_stock_stock_category_id_foreign")
+  @@index([stock_unit_id], map: "idx_42107_stock_stock_unit_id_foreign")
+  @@index([tax_type_id], map: "idx_42107_stock_tax_type_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model stock_bom {
+  id               String             @id(map: "idx_42142_primary") @db.VarChar(36)
+  company_id       String             @db.VarChar(36)
+  sorting          BigInt             @default(1)
+  related_stock_id String             @db.VarChar(36)
+  description      String?            @db.VarChar(200)
+  create_id        String             @db.VarChar(20)
+  create_name      String             @db.VarChar(20)
+  create_time      DateTime           @default(now()) @db.Timestamptz(6)
+  modify_id        String?            @db.VarChar(20)
+  modify_name      String?            @db.VarChar(20)
+  modify_time      DateTime?          @db.Timestamptz(6)
+  stock            stock              @relation(fields: [related_stock_id], references: [id], onUpdate: Restrict, map: "stock_bom_related_stock_id_foreign")
+  stock_bom_detail stock_bom_detail[]
+
+  @@index([related_stock_id], map: "idx_42142_stock_bom_related_stock_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model stock_bom_detail {
+  id           String    @id(map: "idx_42154_primary") @db.VarChar(36)
+  stock_bom_id String    @db.VarChar(36)
+  sorting      BigInt    @default(1)
+  stock_id     String    @db.VarChar(36)
+  qty          Float     @default(0)
+  description  String?   @db.VarChar(200)
+  create_id    String    @db.VarChar(20)
+  create_name  String    @db.VarChar(20)
+  create_time  DateTime  @default(now()) @db.Timestamptz(6)
+  modify_id    String?   @db.VarChar(20)
+  modify_name  String?   @db.VarChar(20)
+  modify_time  DateTime? @db.Timestamptz(6)
+  stock_bom    stock_bom @relation(fields: [stock_bom_id], references: [id], onUpdate: Restrict, map: "stock_bom_detail_stock_bom_id_foreign")
+  stock        stock     @relation(fields: [stock_id], references: [id], onUpdate: Restrict, map: "stock_bom_detail_stock_id_foreign")
+
+  @@index([stock_bom_id], map: "idx_42154_stock_bom_detail_stock_bom_id_foreign")
+  @@index([stock_id], map: "idx_42154_stock_bom_detail_stock_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model stock_brand {
+  id          String    @id(map: "idx_42179_primary") @db.VarChar(36)
+  company_id  String    @db.VarChar(36)
+  sorting     BigInt    @default(1)
+  code        String?   @db.VarChar(20)
+  name        String    @db.VarChar(100)
+  description String?   @db.VarChar(200)
+  create_id   String    @db.VarChar(20)
+  create_name String    @db.VarChar(20)
+  create_time DateTime  @default(now()) @db.Timestamptz(6)
+  modify_id   String?   @db.VarChar(20)
+  modify_name String?   @db.VarChar(20)
+  modify_time DateTime? @db.Timestamptz(6)
+  stock       stock[]
+  company     company   @relation(fields: [company_id], references: [id], onUpdate: Restrict, map: "stock_brand_company_id_foreign")
+
+  @@index([company_id], map: "idx_42179_stock_brand_company_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model stock_category {
+  id                   String           @id(map: "idx_42191_primary") @db.VarChar(36)
+  company_id           String           @db.VarChar(36)
+  parent               String?          @db.VarChar(36)
+  tree_level           BigInt           @default(1)
+  code                 String           @db.VarChar(20)
+  name                 String           @db.VarChar(100)
+  description          String?          @db.VarChar(200)
+  create_id            String           @db.VarChar(20)
+  create_name          String           @db.VarChar(20)
+  create_time          DateTime         @default(now()) @db.Timestamptz(6)
+  modify_id            String?          @db.VarChar(20)
+  modify_name          String?          @db.VarChar(20)
+  modify_time          DateTime?        @db.Timestamptz(6)
+  stock                stock[]
+  company              company          @relation(fields: [company_id], references: [id], onUpdate: Restrict, map: "stock_category_company_id_foreign")
+  stock_category       stock_category?  @relation("stock_categoryTostock_category", fields: [parent], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "stock_category_parent_foreign")
+  other_stock_category stock_category[] @relation("stock_categoryTostock_category")
+
+  @@index([company_id], map: "idx_42191_stock_category_company_id_foreign")
+  @@index([parent], map: "idx_42191_stock_category_parent_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model stock_media {
+  id          String    @id(map: "idx_42222_primary") @db.VarChar(36)
+  stock_id    String    @db.VarChar(36)
+  sorting     BigInt    @default(1)
+  name        String    @db.VarChar(1024)
+  org_name    String    @db.VarChar(1024)
+  media_type  String    @db.VarChar(10)
+  description String?   @db.VarChar(200)
+  create_id   String    @db.VarChar(20)
+  create_name String    @db.VarChar(20)
+  create_time DateTime  @default(now()) @db.Timestamptz(6)
+  modify_id   String?   @db.VarChar(20)
+  modify_name String?   @db.VarChar(20)
+  modify_time DateTime? @db.Timestamptz(6)
+  stock       stock     @relation(fields: [stock_id], references: [id], onUpdate: Restrict, map: "stock_media_stock_id_foreign")
+
+  @@index([stock_id], map: "idx_42222_stock_media_stock_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model stock_meta {
+  id         BigInt @id(map: "idx_42239_primary") @default(autoincrement())
+  stock_id   String @db.VarChar(36)
+  meta_key   String @db.VarChar(1000)
+  meta_value String
+  stock      stock  @relation(fields: [stock_id], references: [id], onUpdate: Restrict, map: "stock_meta_stock_id_foreign")
+
+  @@index([stock_id], map: "idx_42239_stock_meta_stock_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model stock_price {
+  id                   String        @id(map: "idx_42249_primary") @db.VarChar(36)
+  stock_id             String        @db.VarChar(36)
+  sorting              BigInt        @default(1)
+  price_type_id        String        @db.VarChar(36)
+  relation_no          String?       @db.VarChar(20)
+  country_id           String        @db.VarChar(36)
+  currencies_id        String        @db.VarChar(36)
+  price                Float         @default(0)
+  effective_date_start DateTime      @db.Date
+  effective_date_end   DateTime?     @db.Date
+  description          String?       @db.VarChar(200)
+  create_id            String        @db.VarChar(20)
+  create_name          String        @db.VarChar(20)
+  create_time          DateTime      @default(now()) @db.Timestamptz(6)
+  modify_id            String?       @db.VarChar(20)
+  modify_name          String?       @db.VarChar(20)
+  modify_time          DateTime?     @db.Timestamptz(6)
+  sale_detail          sale_detail[]
+  country              country       @relation(fields: [country_id], references: [id], onUpdate: Restrict, map: "stock_price_country_id_foreign")
+  currencies           currencies    @relation(fields: [currencies_id], references: [id], onUpdate: Restrict, map: "stock_price_currencies_id_foreign")
+  price_type           price_type    @relation(fields: [price_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "stock_price_price_type_id_foreign")
+  stock                stock         @relation(fields: [stock_id], references: [id], onUpdate: Restrict, map: "stock_price_stock_id_foreign")
+
+  @@index([country_id], map: "idx_42249_stock_price_country_id_foreign")
+  @@index([currencies_id], map: "idx_42249_stock_price_currencies_id_foreign")
+  @@index([price_type_id], map: "idx_42249_stock_price_price_type_id_foreign")
+  @@index([stock_id], map: "idx_42249_stock_price_stock_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model stock_serial {
+  id            String          @id(map: "idx_42268_primary") @db.VarChar(36)
+  stock_id      String          @db.VarChar(36)
+  sold          Boolean         @default(false)
+  valid         Boolean         @default(true)
+  description   String?         @db.VarChar(200)
+  create_id     String          @db.VarChar(20)
+  create_name   String          @db.VarChar(20)
+  create_time   DateTime        @default(now()) @db.Timestamptz(6)
+  modify_id     String?         @db.VarChar(20)
+  modify_name   String?         @db.VarChar(20)
+  modify_time   DateTime?       @db.Timestamptz(6)
+  inventory_log inventory_log[]
+  sale_detail   sale_detail[]
+  stock         stock           @relation(fields: [stock_id], references: [id], onUpdate: Restrict, map: "stock_serial_stock_id_foreign")
+
+  @@index([stock_id], map: "idx_42268_stock_serial_stock_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model stock_supplier {
+  id          String    @id(map: "idx_42292_primary") @db.VarChar(36)
+  stock_id    String    @db.VarChar(36)
+  partner_id  String    @db.VarChar(36)
+  description String?   @db.VarChar(200)
+  create_id   String    @db.VarChar(20)
+  create_name String    @db.VarChar(20)
+  create_time DateTime  @default(now()) @db.Timestamptz(6)
+  modify_id   String?   @db.VarChar(20)
+  modify_name String?   @db.VarChar(20)
+  modify_time DateTime? @db.Timestamptz(6)
+  partner     partner   @relation(fields: [partner_id], references: [id], onUpdate: Restrict, map: "stock_supplier_partner_id_foreign")
+  stock       stock     @relation(fields: [stock_id], references: [id], onUpdate: Restrict, map: "stock_supplier_stock_id_foreign")
+
+  @@index([partner_id], map: "idx_42292_stock_supplier_partner_id_foreign")
+  @@index([stock_id], map: "idx_42292_stock_supplier_stock_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model stock_unit {
+  id          String    @id(map: "idx_42302_primary") @db.VarChar(36)
+  sorting     BigInt    @default(1)
+  name        String    @db.VarChar(100)
+  serial_type Int       @default(0) @db.SmallInt
+  rate        BigInt    @default(1)
+  description String?   @db.VarChar(200)
+  create_id   String    @db.VarChar(20)
+  create_name String    @db.VarChar(20)
+  create_time DateTime  @default(now()) @db.Timestamptz(6)
+  modify_id   String?   @db.VarChar(20)
+  modify_name String?   @db.VarChar(20)
+  modify_time DateTime? @db.Timestamptz(6)
+  stock       stock[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model tax_type {
+  id          String    @id(map: "idx_42356_primary") @db.VarChar(36)
+  country_id  String    @db.VarChar(36)
+  sorting     BigInt    @default(1)
+  name        String    @db.VarChar(100)
+  description String?   @db.VarChar(200)
+  create_id   String    @db.VarChar(20)
+  create_name String    @db.VarChar(20)
+  create_time DateTime  @default(now()) @db.Timestamptz(6)
+  modify_id   String?   @db.VarChar(20)
+  modify_name String?   @db.VarChar(20)
+  modify_time DateTime? @db.Timestamptz(6)
+  stock       stock[]
+  country     country   @relation(fields: [country_id], references: [id], onUpdate: Restrict, map: "tax_type_country_id_foreign")
+
+  @@index([country_id], map: "idx_42356_tax_type_country_id_foreign")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model warehouse {
+  id                String          @id(map: "idx_42396_primary") @db.VarChar(36)
+  company_id        String          @db.VarChar(36)
+  sorting           BigInt          @default(1)
+  code              String          @db.VarChar(20)
+  name              String          @db.VarChar(100)
+  warehouse_type_id String          @db.VarChar(36)
+  description       String?         @db.VarChar(200)
+  create_id         String          @db.VarChar(20)
+  create_name       String          @db.VarChar(20)
+  create_time       DateTime        @default(now()) @db.Timestamptz(6)
+  modify_id         String?         @db.VarChar(20)
+  modify_name       String?         @db.VarChar(20)
+  modify_time       DateTime?       @db.Timestamptz(6)
+  inventory         inventory[]
+  inventory_log     inventory_log[]
+  purchase          purchase[]
+  company           company         @relation(fields: [company_id], references: [id], onUpdate: Restrict, map: "warehouse_company_id_foreign")
+
+  @@index([company_id], map: "idx_42396_warehouse_company_id_foreign")
+  @@index([warehouse_type_id], map: "idx_42396_warehouse_warehouse_type_id_foreign")
 }
