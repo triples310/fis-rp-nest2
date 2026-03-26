@@ -53,7 +53,7 @@ export class StockController {
   @RequirePermission('stock.create')
   @Post()
   async createStock(@Body() dto: CreateStockDto, @CurrentUser() user: any) {
-    return this.stockService.createStock(dto, user?.id, user?.name);
+    return this.stockService.createStock(dto, user?.account, user?.name);
   }
 
   @ApiOperation({ summary: '查詢商品列表' })
@@ -83,7 +83,7 @@ export class StockController {
     @Body() dto: UpdateStockDto,
     @CurrentUser() user: any,
   ) {
-    return this.stockService.updateStock(id, dto, user?.id, user?.name);
+    return this.stockService.updateStock(id, dto, user?.account, user?.name);
   }
 
   @ApiOperation({ summary: '刪除商品' })
@@ -117,7 +117,7 @@ export class StockController {
     @Body() dto: CreateStockBrandDto,
     @CurrentUser() user: any,
   ) {
-    return this.stockService.createStockBrand(dto, user?.id, user?.name);
+    return this.stockService.createStockBrand(dto, user?.account, user?.name);
   }
 
   @ApiOperation({ summary: '查詢商品品牌列表' })
@@ -142,7 +142,7 @@ export class StockController {
     @Body() dto: UpdateStockBrandDto,
     @CurrentUser() user: any,
   ) {
-    return this.stockService.updateStockBrand(id, dto, user?.id, user?.name);
+    return this.stockService.updateStockBrand(id, dto, user?.account, user?.name);
   }
 
   @ApiOperation({ summary: '刪除商品品牌' })
@@ -163,7 +163,7 @@ export class StockController {
     @Body() dto: CreateStockCategoryDto,
     @CurrentUser() user: any,
   ) {
-    return this.stockService.createStockCategory(dto, user?.id, user?.name);
+    return this.stockService.createStockCategory(dto, user?.account, user?.name);
   }
 
   @ApiOperation({ summary: '查詢商品類別列表' })
@@ -188,7 +188,7 @@ export class StockController {
     @Body() dto: UpdateStockCategoryDto,
     @CurrentUser() user: any,
   ) {
-    return this.stockService.updateStockCategory(id, dto, user?.id, user?.name);
+    return this.stockService.updateStockCategory(id, dto, user?.account, user?.name);
   }
 
   @ApiOperation({ summary: '刪除商品類別' })
@@ -209,7 +209,7 @@ export class StockController {
     @Body() dto: CreateStockUnitDto,
     @CurrentUser() user: any,
   ) {
-    return this.stockService.createStockUnit(dto, user?.id, user?.name);
+    return this.stockService.createStockUnit(dto, user?.account, user?.name);
   }
 
   @ApiOperation({ summary: '查詢商品單位列表' })
@@ -234,7 +234,7 @@ export class StockController {
     @Body() dto: UpdateStockUnitDto,
     @CurrentUser() user: any,
   ) {
-    return this.stockService.updateStockUnit(id, dto, user?.id, user?.name);
+    return this.stockService.updateStockUnit(id, dto, user?.account, user?.name);
   }
 
   @ApiOperation({ summary: '刪除商品單位' })

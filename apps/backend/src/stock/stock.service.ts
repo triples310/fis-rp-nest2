@@ -87,6 +87,7 @@ export class StockService {
           gift: dto.gift ?? false,
           create_id: operatorId,
           create_name: operatorName,
+          modify_time: new Date(),
         },
       });
 
@@ -104,6 +105,7 @@ export class StockService {
             effective_date_start: new Date(),
             create_id: operatorId,
             create_name: operatorName,
+            modify_time: new Date(),
           },
         });
       }
@@ -122,6 +124,7 @@ export class StockService {
             effective_date_start: new Date(),
             create_id: operatorId,
             create_name: operatorName,
+            modify_time: new Date(),
           },
         });
       }
@@ -135,6 +138,7 @@ export class StockService {
             partner_id: dto.partnerId,
             create_id: operatorId,
             create_name: operatorName,
+            modify_time: new Date(),
           }],
         });
       }
@@ -234,6 +238,7 @@ export class StockService {
           dto.fixedPrice,
           operatorId,
           operatorName,
+          modify_time: new Date(),
         );
       }
 
@@ -246,6 +251,7 @@ export class StockService {
           dto.retailPrice,
           operatorId,
           operatorName,
+          modify_time: new Date(),
         );
       }
 
@@ -260,6 +266,7 @@ export class StockService {
               partner_id: dto.partnerId,
               create_id: operatorId,
               create_name: operatorName,
+              modify_time: new Date(),
             }],
           });
         }
@@ -347,6 +354,7 @@ export class StockService {
         description: dto.description ?? null,
         create_id: operatorId,
         create_name: operatorName,
+        modify_time: new Date(),
       },
     });
   }
@@ -449,6 +457,7 @@ export class StockService {
         description: dto.description ?? null,
         create_id: operatorId,
         create_name: operatorName,
+        modify_time: new Date(),
       },
     });
   }
@@ -582,6 +591,7 @@ export class StockService {
         description: dto.description ?? null,
         create_id: operatorId,
         create_name: operatorName,
+        modify_time: new Date(),
       },
     });
   }
@@ -759,6 +769,7 @@ export class StockService {
         effective_date_start: new Date(),
         create_id: operatorId,
         create_name: operatorName,
+        modify_time: new Date(),
       },
     });
   }
