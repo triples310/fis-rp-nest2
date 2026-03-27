@@ -45,10 +45,38 @@ export class StockService {
         code = `${category.code}${countryUpper}${dto.barcode.slice(-4)}`;
       } else {
         const prefix = `${category.code}${countryUpper}`;
-        const count = await this.prisma.stock.count({
-          where: { code: { startsWith: prefix }, barcode: null },
+        const existingCodes = await this.prisma.stock.findMany({
+          where: { 
+            code: { startsWith: prefix },
+            barcode: null,  // PostgreSQL NULL check
+          },
+          select: { code: true },
+          orderBy: { code: 'desc' },
         });
-        code = `${prefix}A${String(count + 1).padStart(3, '0')}`;
+
+        // Also check for empty string barcode (in case data has '' instead of NULL)
+        const existingCodesEmptyBarcode = await this.prisma.stock.findMany({
+          where: { 
+            code: { startsWith: prefix },
+            barcode: '',
+          },
+          select: { code: true },
+          orderBy: { code: 'desc' },
+        });
+
+        const allCodes = [...existingCodes, ...existingCodesEmptyBarcode];
+
+        let maxSeq = 0;
+        for (const row of allCodes) {
+          // code format: {prefix}A{3-digit-number}, e.g. "03TWA006"
+          const match = row.code.match(/A(\d+)$/);
+          if (match) {
+            const seq = parseInt(match[1], 10);
+            if (seq > maxSeq) maxSeq = seq;
+          }
+        }
+
+        code = `${prefix}A${String(maxSeq + 1).padStart(3, '0')}`;
       }
     }
 
@@ -238,7 +266,6 @@ export class StockService {
           dto.fixedPrice,
           operatorId,
           operatorName,
-          modify_time: new Date(),
         );
       }
 
@@ -251,7 +278,6 @@ export class StockService {
           dto.retailPrice,
           operatorId,
           operatorName,
-          modify_time: new Date(),
         );
       }
 
